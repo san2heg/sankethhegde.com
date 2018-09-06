@@ -1,3 +1,8 @@
+// Get number from string, e.g. '10px'
+function parseCSS(str) {
+  return str.match(/\d+/)[0];
+}
+
 function reset() {
   $(window).off('scroll');
   $('#nav').removeClass('fixed');
@@ -14,17 +19,15 @@ function setupCenterpiece() {
   $('#centerpiece').css('margin-bottom', marginHeight + navHeight/2);
 }
 
-function setupScroll() {
+function setupStickyScroll() {
   var $nav = $('#nav');
   var $footer = $('#footer');
   var navTop = $nav.offset().top;
   var footerBottom = $footer.offset().top + $footer.height();
-  console.log(footerBottom);
 
   $(window).on('scroll', function(event) {
     var y = $(this).scrollTop();
     var yBottom = y + $(this).height();
-    console.log(y);
     var navIsFixed = $nav.hasClass('fixed');
     var footerIsFixed = $footer.hasClass('fixed');
 
@@ -50,9 +53,33 @@ function setupScroll() {
   });
 }
 
+function setupScrollAnimation() {
+  var $nav = $('#nav');
+  var $navInner = $('#nav .nav-inner')
+  var origMargin = parseCSS($navInner.css('margin-left'));
+  var endMargin = 50;
+  var diffMargin = origMargin - endMargin;
+  var startHeight = $nav.offset().top;
+  var endHeight = $('#centerpiece').outerHeight(true);
+  var length = endHeight - startHeight;
+
+  $(window).on('scroll', function(event) {
+    var y = $(this).scrollTop();
+    if (y >= startHeight && y <= endHeight) {
+      var percentComplete = (y - startHeight) / length;
+      $navInner.css('margin-left', origMargin - percentComplete * diffMargin);
+    } else if (y < startHeight) {
+      $navInner.css('margin-left', 'auto');
+    } else {
+      $navInner.css('margin-left', endMargin);
+    }
+  });
+}
+
 function setup() {
   setupCenterpiece();
-  setupScroll();
+  setupStickyScroll();
+  setupScrollAnimation();
 }
 
 $(document).ready(function() {

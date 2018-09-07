@@ -1,6 +1,6 @@
 body {
   font-family: "halyard-display", sans-serif;
-  background: #F5F5F5;
+  background: #f7f7f7;
   color: #444444;
   font-weight: 300;
 }
@@ -22,13 +22,9 @@ body {
 }
 
 #header .title-inner {
-  max-width: 300px;
+  max-width: 350px;
   margin: 0 auto;
   text-align: center;
-}
-
-#header #logo {
-  position: absolute;
 }
 
 /* NAV */
@@ -42,8 +38,8 @@ body {
 #nav {
   position: absolute;
   width: 100%;
-  background-color: #F5F5F5;
-  font-weight: 400;
+  background-color: #f7f7f7;
+  font-weight: 300;
 }
 
 #nav.fixed {
@@ -54,6 +50,24 @@ body {
   left:0;
   right:0;
   /* border-bottom: 1px solid #E0E0E0; */
+}
+
+#nav #top-logo {
+  opacity: 0;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-left: 40px;
+  font-size: 26px;
+  color: #444444;
+}
+
+#nav #top-logo img {
+  width: 20px;
 }
 
 /* MENU */
@@ -76,6 +90,7 @@ body {
 #content {
   height: 2000px;
   background-color: white;
+  border-top: 1px solid #E0E0E0;
 }
 
 #content .inner {
@@ -93,7 +108,7 @@ body {
   width: 100%;
   bottom: 0;
   z-index: 999;
-  background-color: #F5F5F5;
+  background-color: #f7f7f7;
 }
 
 #footer img.social-icon {

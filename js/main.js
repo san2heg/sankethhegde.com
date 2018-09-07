@@ -1,4 +1,6 @@
-function parseCSS(str) { return str.match(/\d+/)[0]; }
+RESETS = [];
+
+function parseCSS(str) { return parseFloat(str.match(/\d+/)[0]); }
 
 function easeInOutQuad (t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t; }
 
@@ -6,8 +8,13 @@ function reset() {
   $(window).off('scroll');
   $('#nav').removeClass('fixed');
   $('#footer').removeClass('fixed');
-  $('#nav .nav-inner').css('margin-right', 'auto');
-  $('#title .title-inner').css('margin-left', 'auto');
+
+  var i;
+  for (i = 0; i < RESETS.length; i++) {
+    RESETS[i]();
+  }
+
+  RESETS = [];
 }
 
 function setupCenterpiece() {
@@ -55,34 +62,89 @@ function setupStickyScroll() {
 }
 
 function setupScrollAnimation() {
-  var $nav = $('#nav');
-  var $navInner = $('#nav .nav-inner');
-  var $titleInner = $('#title .title-inner');
-
-  var origNavMargin = parseCSS($navInner.css('margin-right'));
-  var origTitleMargin = parseCSS($titleInner.css('margin-left'));
-  var endNavMargin = 0;
-  var endTitleMargin = 0.7 * origTitleMargin;
-  var diffNavMargin = origNavMargin - endNavMargin;
-  var diffTitleMargin = origTitleMargin - endTitleMargin;
-  var startHeight = 0;
-  var endHeight = $('#centerpiece').outerHeight(true) - $nav.height();
-  var length = endHeight - startHeight;
+  var elems = [
+    $('#nav .nav-inner'),
+    $('#title .title-inner'),
+    $('#nav #top-logo'),
+    $('#nav #top-logo')
+  ];
+  var properties = [
+    'margin-right',
+    'margin-left',
+    'margin-left',
+    'opacity'
+  ]
+  var multipliers = [
+    -1,
+    -1,
+    -1,
+    1
+  ];
+  var startVals = [
+    parseCSS(elems[0].css('margin-right')),
+    parseCSS(elems[1].css('margin-left')),
+    parseCSS(elems[2].css('margin-left')),
+    0
+  ];
+  var endVals = [
+    0,
+    0.7 * startVals[1],
+    0,
+    1
+  ];
+  var startHeights = [
+    0,
+    0,
+    $('#title .title-inner').offset().top + $('#title .title-inner').height(),
+    $('#title .title-inner').offset().top + $('#title .title-inner').height()
+  ];
+  var endHeights = [
+    $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    $('#centerpiece').outerHeight(true) - $('#nav').height()
+  ];
 
   $(window).on('scroll', function(event) {
     var y = $(this).scrollTop();
-    if (y >= startHeight && y <= endHeight) {
-      var percentComplete = (y - startHeight) / length;
-      var percentEase = easeInOutQuad(percentComplete);
-      $navInner.css('margin-right', origNavMargin - percentEase * diffNavMargin);
-      $titleInner.css('margin-left', origTitleMargin - percentEase * diffTitleMargin);
-    } else if (y < startHeight) {
-      $navInner.css('margin-right', 'auto');
-      $titleInner.css('margin-left', 'auto');
-    } else {
-      $navInner.css('margin-right', endNavMargin);
-      $titleInner.css('margin-left', endTitleMargin);
+    var i;
+    for (i = 0; i < elems.length; i++) {
+      var startHeight = startHeights[i],
+          endHeight = endHeights[i],
+          property = properties[i],
+          startVal = startVals[i],
+          diffVal = Math.abs(endVals[i] - startVals[i]),
+          elem = elems[i],
+          endVal = endVals[i],
+          multiplier = multipliers[i];
+
+      var length = endHeight - startHeight;
+      if (y >= startHeight && y <= endHeight) {
+        var percentComplete = (y - startHeight) / length;
+        var percentEase = easeInOutQuad(percentComplete);
+        elem.css(property, startVal + (percentEase * diffVal) * multiplier);
+        if (elem.hasClass('nav-inner')) {
+          $('#nav').css('border-bottom', 'none');
+        }
+      } else if (y < startHeight) {
+        elem.css(property, startVal);
+        if (elem.hasClass('nav-inner')) {
+          $('#nav').css('border-bottom', 'none');
+        }
+      } else {
+        elem.css(property, endVal);
+        if (elem.hasClass('nav-inner')) {
+          $('#nav').css('border-bottom', '1px solid #E0E0E0');
+        }
+      }
     }
+  });
+
+  RESETS.push(function resets() {
+    $('#nav .nav-inner').css('margin-right', 'auto');
+    $('#title .title-inner').css('margin-left', 'auto');
+    $('#nav #top-logo').css('margin-left', startVals[2]);
+    $('#nav #top-logo').css('opacity', 0);
   });
 }
 

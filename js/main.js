@@ -1,12 +1,13 @@
-// Get number from string, e.g. '10px'
-function parseCSS(str) {
-  return str.match(/\d+/)[0];
-}
+function parseCSS(str) { return str.match(/\d+/)[0]; }
+
+function easeInOutQuad (t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t; }
 
 function reset() {
   $(window).off('scroll');
   $('#nav').removeClass('fixed');
   $('#footer').removeClass('fixed');
+  $('#nav .nav-inner').css('margin-right', 'auto');
+  $('#title .title-inner').css('margin-left', 'auto');
 }
 
 function setupCenterpiece() {
@@ -55,23 +56,32 @@ function setupStickyScroll() {
 
 function setupScrollAnimation() {
   var $nav = $('#nav');
-  var $navInner = $('#nav .nav-inner')
-  var origMargin = parseCSS($navInner.css('margin-left'));
-  var endMargin = 50;
-  var diffMargin = origMargin - endMargin;
-  var startHeight = $nav.offset().top;
-  var endHeight = $('#centerpiece').outerHeight(true);
+  var $navInner = $('#nav .nav-inner');
+  var $titleInner = $('#title .title-inner');
+
+  var origNavMargin = parseCSS($navInner.css('margin-right'));
+  var origTitleMargin = parseCSS($titleInner.css('margin-left'));
+  var endNavMargin = 0;
+  var endTitleMargin = 0.7 * origTitleMargin;
+  var diffNavMargin = origNavMargin - endNavMargin;
+  var diffTitleMargin = origTitleMargin - endTitleMargin;
+  var startHeight = 0;
+  var endHeight = $('#centerpiece').outerHeight(true) - $nav.height();
   var length = endHeight - startHeight;
 
   $(window).on('scroll', function(event) {
     var y = $(this).scrollTop();
     if (y >= startHeight && y <= endHeight) {
       var percentComplete = (y - startHeight) / length;
-      $navInner.css('margin-left', origMargin - percentComplete * diffMargin);
+      var percentEase = easeInOutQuad(percentComplete);
+      $navInner.css('margin-right', origNavMargin - percentEase * diffNavMargin);
+      $titleInner.css('margin-left', origTitleMargin - percentEase * diffTitleMargin);
     } else if (y < startHeight) {
-      $navInner.css('margin-left', 'auto');
+      $navInner.css('margin-right', 'auto');
+      $titleInner.css('margin-left', 'auto');
     } else {
-      $navInner.css('margin-left', endMargin);
+      $navInner.css('margin-right', endNavMargin);
+      $titleInner.css('margin-left', endTitleMargin);
     }
   });
 }

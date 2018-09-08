@@ -1,14 +1,7 @@
 RESETS = [];
 
-function parseCSS(str) { return parseFloat(str.match(/\d+/)[0]); }
-
-function easeInOutQuad (t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t; }
-
 function reset() {
   $(window).off('scroll');
-  $('#nav').removeClass('fixed');
-  $('#footer').removeClass('fixed');
-
   var i;
   for (i = 0; i < RESETS.length; i++) {
     RESETS[i]();
@@ -59,6 +52,11 @@ function setupStickyScroll() {
       }
     }
   });
+
+  RESETS.push(function() {
+    $('#nav').removeClass('fixed');
+    $('#footer').removeClass('fixed');
+  });
 }
 
 function setupScrollAnimation() {
@@ -81,14 +79,14 @@ function setupScrollAnimation() {
     1
   ];
   var startVals = [
-    parseCSS(elems[0].css('margin-right')),
-    parseCSS(elems[1].css('margin-left')),
-    parseCSS(elems[2].css('margin-left')),
+    parseFloat(elems[0].css('margin-right')),
+    parseFloat(elems[1].css('margin-left')),
+    parseFloat(elems[2].css('margin-left')),
     0
   ];
   var endVals = [
     0,
-    0.7 * startVals[1],
+    0,
     0,
     1
   ];
@@ -104,6 +102,12 @@ function setupScrollAnimation() {
     $('#centerpiece').outerHeight(true) - $('#nav').height(),
     $('#centerpiece').outerHeight(true) - $('#nav').height()
   ];
+  var easeMethods = [
+    EasingFunctions.easeInOutQuad,
+    EasingFunctions.easeInQuad,
+    EasingFunctions.easeInOutQuad,
+    EasingFunctions.easeInOutQuad
+  ]
 
   $(window).on('scroll', function(event) {
     var y = $(this).scrollTop();
@@ -116,12 +120,13 @@ function setupScrollAnimation() {
           diffVal = Math.abs(endVals[i] - startVals[i]),
           elem = elems[i],
           endVal = endVals[i],
-          multiplier = multipliers[i];
+          multiplier = multipliers[i],
+          easeMethod = easeMethods[i]
 
       var length = endHeight - startHeight;
       if (y >= startHeight && y <= endHeight) {
         var percentComplete = (y - startHeight) / length;
-        var percentEase = easeInOutQuad(percentComplete);
+        var percentEase = easeMethod(percentComplete);
         elem.css(property, startVal + (percentEase * diffVal) * multiplier);
         if (elem.hasClass('nav-inner')) {
           $('#nav').css('border-bottom', 'none');
@@ -140,7 +145,7 @@ function setupScrollAnimation() {
     }
   });
 
-  RESETS.push(function resets() {
+  RESETS.push(function() {
     $('#nav .nav-inner').css('margin-right', 'auto');
     $('#title .title-inner').css('margin-left', 'auto');
     $('#nav #top-logo').css('margin-left', startVals[2]);
@@ -149,17 +154,17 @@ function setupScrollAnimation() {
 }
 
 function setup() {
+  reset()
   setupCenterpiece();
   setupStickyScroll();
   setupScrollAnimation();
+  $(window).trigger('scroll');
 }
 
 $(document).ready(function() {
   setup();
 
   $(window).on('resize', function() {
-    reset();
     setup();
-    $(window).trigger('scroll');
   });
 });

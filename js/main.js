@@ -17,8 +17,18 @@ function setupCenterpiece() {
   var navHeight = $('#nav').height();
   var marginHeight = (windowHeight - cpHeight) / 2;
 
-  $('#centerpiece').css('margin-top', marginHeight - navHeight/2);
-  $('#centerpiece').css('margin-bottom', marginHeight + navHeight/2);
+  $('#centerpiece').css('padding-top', marginHeight - navHeight/2);
+  $('#centerpiece').css('padding-bottom', marginHeight + navHeight/2);
+}
+
+function setupAnchors() {
+  $('.content-section').css({
+    'padding-top': $('#nav').height(),
+    'margin-bottom': $('#nav').height() * -1
+  })
+  $('#header').css('margin-bottom', $('#nav').height() * -1);
+  $('#footer').css('margin-top', $('#nav').height());
+  $('#content .content-section:last-child').css('padding-bottom', $('#footer').height());
 }
 
 function setupStickyScroll() {
@@ -26,6 +36,7 @@ function setupStickyScroll() {
   var $footer = $('#footer');
   var navTop = $nav.offset().top;
   var footerBottom = $footer.offset().top + $footer.height();
+  console.log('footerBottom = ' + footerBottom);
 
   SCROLL_FUNCS.push(function(y) {
     var yBottom = y + $(window).height();
@@ -67,27 +78,27 @@ function setupScrollAnimation() {
     $('#nav #top-logo')
   ];
   var properties = [
-    'margin-right',
-    'margin-left',
-    'margin-left',
+    'translateX',
+    'translateX',
+    'translateX',
     'opacity'
-  ]
-  var multipliers = [
-    -1,
-    -1,
-    -1,
-    1
+  ];
+  var transformProperties = [
+    'px',
+    'px',
+    'px',
+    false
   ];
   var startVals = [
-    parseFloat(elems[0].css('margin-right')),
-    parseFloat(elems[1].css('margin-left')),
-    parseFloat(elems[2].css('margin-left')),
+    0,
+    0,
+    0,
     0
   ];
   var endVals = [
-    0,
-    0,
-    0,
+    parseFloat(elems[0].css('margin-right')),
+    -1 * parseFloat(elems[1].css('margin-left')),
+    -1 * parseFloat(elems[2].css('margin-left')),
     1
   ];
   var startHeights = [
@@ -115,39 +126,53 @@ function setupScrollAnimation() {
       var startHeight = startHeights[i],
           endHeight = endHeights[i],
           property = properties[i],
+          transformProperty = transformProperties[i],
           startVal = startVals[i],
           diffVal = Math.abs(endVals[i] - startVals[i]),
           elem = elems[i],
           endVal = endVals[i],
-          multiplier = multipliers[i],
-          easeMethod = easeMethods[i]
+          easeMethod = easeMethods[i],
+          multiplier = endVals[i] - startVals[i] >= 0 ? 1 : -1;
 
       var length = endHeight - startHeight;
       if (y >= startHeight && y <= endHeight) {
         var percentComplete = (y - startHeight) / length;
         var percentEase = easeMethod(percentComplete);
-        elem.css(property, startVal + (percentEase * diffVal) * multiplier);
+        var currVal = startVal + (percentEase * diffVal) * multiplier;
+        if (transformProperty != false) {
+          elem.css('transform', property + '(' + currVal + transformProperty + ')');
+        } else {
+          elem.css(property, currVal);
+        }
         if (elem.hasClass('nav-inner')) {
-          $('#nav').css('border-bottom', 'none');
+          // $('#nav').css('border-bottom', 'none');
         }
       } else if (y < startHeight) {
-        elem.css(property, startVal);
+        if (transformProperty != false) {
+          elem.css('transform', property + '(' + startVal + transformProperty + ')');
+        } else {
+          elem.css(property, startVal);
+        }
         if (elem.hasClass('nav-inner')) {
-          $('#nav').css('border-bottom', 'none');
+          // $('#nav').css('border-bottom', 'none');
         }
       } else {
-        elem.css(property, endVal);
+        if (transformProperty != false) {
+          elem.css('transform', property + '(' + endVal + transformProperty + ')');
+        } else {
+          elem.css(property, endVal);
+        }
         if (elem.hasClass('nav-inner')) {
-          $('#nav').css('border-bottom', '1px solid #E0E0E0');
+          // $('#nav').css('border-bottom', '1px solid #E0E0E0');
         }
       }
     }
   });
 
   RESETS.push(function() {
-    $('#nav .nav-inner').css('margin-right', 'auto');
-    $('#title .title-inner').css('margin-left', 'auto');
-    $('#nav #top-logo').css('margin-left', startVals[2]);
+    $('#nav .nav-inner').css('transform', 'none');
+    $('#title .title-inner').css('transform', 'none');
+    $('#nav #top-logo').css('transform', 'none');
     $('#nav #top-logo').css('opacity', 0);
   });
 }
@@ -190,6 +215,7 @@ function setupRAFScroll() {
 
 $(document).ready(function() {
   setupRAFScroll();
+  setupAnchors();
   setup();
 
   $(window).on('resize', function() {

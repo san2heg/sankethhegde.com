@@ -1,13 +1,14 @@
 RESETS = [];
+SCROLL_FUNCS = [];
 
 function reset() {
-  $(window).off('scroll');
   var i;
   for (i = 0; i < RESETS.length; i++) {
     RESETS[i]();
   }
 
   RESETS = [];
+  SCROLL_FUNCS = [];
 }
 
 function setupCenterpiece() {
@@ -26,9 +27,8 @@ function setupStickyScroll() {
   var navTop = $nav.offset().top;
   var footerBottom = $footer.offset().top + $footer.height();
 
-  $(window).on('scroll', function(event) {
-    var y = $(this).scrollTop();
-    var yBottom = y + $(this).height();
+  SCROLL_FUNCS.push(function(y) {
+    var yBottom = y + $(window).height();
     var navIsFixed = $nav.hasClass('fixed');
     var footerIsFixed = $footer.hasClass('fixed');
 
@@ -51,7 +51,7 @@ function setupStickyScroll() {
         $footer.removeClass('fixed');
       }
     }
-  });
+  })
 
   RESETS.push(function() {
     $('#nav').removeClass('fixed');
@@ -109,8 +109,7 @@ function setupScrollAnimation() {
     EasingFunctions.easeInOutQuad
   ]
 
-  $(window).on('scroll', function(event) {
-    var y = $(this).scrollTop();
+  SCROLL_FUNCS.push(function(y) {
     var i;
     for (i = 0; i < elems.length; i++) {
       var startHeight = startHeights[i],
@@ -161,7 +160,36 @@ function setup() {
   $(window).trigger('scroll');
 }
 
+function setupRAFScroll() {
+  var lastScrollY = 0;
+  var ticking = false;
+  var k = 0, j = 0;
+
+  var update = function() {
+    var i;
+    for (i = 0; i < SCROLL_FUNCS.length; i++) {
+      SCROLL_FUNCS[i](lastScrollY);
+    }
+    ticking = false;
+  };
+
+  var requestTick = function() {
+    if (!ticking) {
+      window.requestAnimationFrame(update);
+      ticking = true;
+    }
+  };
+
+  var onScroll = function() {
+    lastScrollY = window.scrollY;
+    requestTick();
+  };
+
+  $(window).on('scroll', onScroll);
+}
+
 $(document).ready(function() {
+  setupRAFScroll();
   setup();
 
   $(window).on('resize', function() {

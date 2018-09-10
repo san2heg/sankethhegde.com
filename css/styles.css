@@ -88,13 +88,45 @@ body {
 /* CONTENT */
 
 #content {
-  height: 2000px;
   background-color: white;
-  border-top: 1px solid #E0E0E0;
 }
 
 #content .inner {
   padding: 40px;
+  padding-top: 5px;
+}
+
+#content .content-section {
+  border-top: 1px solid #E0E0E0;
+  height: 400px;
+}
+
+#content .content-header {
+  font-size: 40px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#content .content-header-inner {
+  display: inline-block;
+}
+
+#content #about .content-header-inner {
+  color: #762626;
+}
+
+#content #code .content-header-inner {
+  color: #336B87;
+}
+
+#content #motion .content-header-inner {
+  color: #90AFC5;
+}
+
+#content #contact .content-header-inner {
+  color: #2A3132;
 }
 
 /* FOOTER */

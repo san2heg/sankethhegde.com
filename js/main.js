@@ -75,39 +75,46 @@ function setupScrollAnimation() {
     $('#nav .nav-inner'),
     $('#title .title-inner'),
     $('#nav #top-logo'),
-    $('#nav #top-logo')
+    $('#nav #top-logo'),
+    $('#header .bkg')
   ];
   var properties = [
     'translateX',
     'translateX',
     'translateX',
+    'opacity',
     'opacity'
   ];
   var transformProperties = [
     'px',
     'px',
     'px',
+    false,
     false
   ];
   var startVals = [
     0,
     0,
     0,
-    0
+    0,
+    1
   ];
   var endVals = [
     parseFloat(elems[0].css('margin-right')),
     -1 * parseFloat(elems[1].css('margin-left')),
     -1 * parseFloat(elems[2].css('margin-left')),
-    1
+    1,
+    0
   ];
   var startHeights = [
     0,
     0,
     $('#title .title-inner').offset().top + $('#title .title-inner').height(),
-    $('#title .title-inner').offset().top + $('#title .title-inner').height()
+    $('#title .title-inner').offset().top + $('#title .title-inner').height(),
+    0
   ];
   var endHeights = [
+    $('#centerpiece').outerHeight(true) - $('#nav').height(),
     $('#centerpiece').outerHeight(true) - $('#nav').height(),
     $('#centerpiece').outerHeight(true) - $('#nav').height(),
     $('#centerpiece').outerHeight(true) - $('#nav').height(),
@@ -117,7 +124,8 @@ function setupScrollAnimation() {
     EasingFunctions.easeInOutQuad,
     EasingFunctions.easeInQuad,
     EasingFunctions.easeInOutQuad,
-    EasingFunctions.easeInOutQuad
+    EasingFunctions.easeInOutQuad,
+    EasingFunctions.linear
   ]
 
   SCROLL_FUNCS.push(function(y) {
@@ -145,7 +153,8 @@ function setupScrollAnimation() {
           elem.css(property, currVal);
         }
         if (elem.hasClass('nav-inner')) {
-          // $('#nav').css('border-bottom', 'none');
+          $('#nav').css('border-bottom', 'none');
+          $('#nav').css('background', 'none');
         }
       } else if (y < startHeight) {
         if (transformProperty != false) {
@@ -154,7 +163,8 @@ function setupScrollAnimation() {
           elem.css(property, startVal);
         }
         if (elem.hasClass('nav-inner')) {
-          // $('#nav').css('border-bottom', 'none');
+          $('#nav').css('border-bottom', 'none');
+          $('#nav').css('background', 'none');
         }
       } else {
         if (transformProperty != false) {
@@ -163,7 +173,8 @@ function setupScrollAnimation() {
           elem.css(property, endVal);
         }
         if (elem.hasClass('nav-inner')) {
-          // $('#nav').css('border-bottom', '1px solid #E0E0E0');
+          $('#nav').css('border-bottom', '1px solid #e0e0e0');
+          $('#nav').css('background-color', 'white');
         }
       }
     }

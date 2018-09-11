@@ -11,6 +11,12 @@ function reset() {
   SCROLL_FUNCS = [];
 }
 
+function scrollTo(selector, offset) {
+  $('html, body').animate({
+    scrollTop: $(selector).offset().top - offset
+  }, 2000, "swing");
+}
+
 function setupCenterpiece() {
   var windowHeight = window.innerHeight;
   var cpHeight = $('#centerpiece').height();
@@ -78,6 +84,13 @@ function setupScrollAnimation() {
     $('#nav #top-logo'),
     $('#header .bkg')
   ];
+  var elemsActive = [
+    true,
+    true,
+    true,
+    true,
+    true
+  ];
   var properties = [
     'translateX',
     'translateX',
@@ -138,9 +151,12 @@ function setupScrollAnimation() {
           startVal = startVals[i],
           diffVal = Math.abs(endVals[i] - startVals[i]),
           elem = elems[i],
+          elemActive = elemsActive[i],
           endVal = endVals[i],
           easeMethod = easeMethods[i],
           multiplier = endVals[i] - startVals[i] >= 0 ? 1 : -1;
+
+      if (!elemActive) { continue; }
 
       var length = endHeight - startHeight;
       if (y >= startHeight && y <= endHeight) {
@@ -173,7 +189,7 @@ function setupScrollAnimation() {
           elem.css(property, endVal);
         }
         if (elem.hasClass('nav-inner')) {
-          $('#nav').css('border-bottom', '1px solid #e0e0e0');
+          $('#nav').css('border-bottom', '1px solid #d9d9d9');
           $('#nav').css('background-color', 'white');
         }
       }
@@ -185,6 +201,13 @@ function setupScrollAnimation() {
     $('#title .title-inner').css('transform', 'none');
     $('#nav #top-logo').css('transform', 'none');
     $('#nav #top-logo').css('opacity', 0);
+  });
+}
+
+function setupClicks() {
+  $('.down-btn').on('click', function(e) {
+    e.preventDefault();
+    scrollTo('#about', $('#footer').hasClass('fixed') ? 0 : $('#footer').height());
   });
 }
 
@@ -227,6 +250,7 @@ function setupRAFScroll() {
 $(document).ready(function() {
   setupRAFScroll();
   setupAnchors();
+  setupClicks();
   setup();
 
   $(window).on('resize', function() {

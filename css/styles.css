@@ -34,6 +34,7 @@ body {
 }
 
 #header .bkg {
+  opacity: 0;
   position: absolute;
   height: 100%;
   width: 100%;
@@ -101,7 +102,6 @@ body {
   height: 100%;
   padding-left: 30px;
   padding-right: 30px;
-  margin-left: 40px;
   font-size: 26px;
   font-weight:400;
   color: #444444;
@@ -113,6 +113,12 @@ body {
 
 #nav a {
   height: 49px;
+}
+
+#menu-mobile {
+  display: none;
+  padding-right: 30px;
+  justify-content: flex-end;
 }
 
 /* MENU */
@@ -176,12 +182,8 @@ body {
 
 /* FOOTER */
 
-#footer .inner {
-  padding: 10px;
-}
-
 #footer {
-  border-top: 1px solid #E0E0E0;
+  border-top: 1px solid #d9d9d9;
   width: 100%;
   bottom: 0;
   z-index: 999;
@@ -209,6 +211,7 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  padding: 10px 30px 10px 30px;
 }
 
 #footer .menu {

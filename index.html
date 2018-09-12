@@ -7,13 +7,14 @@
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="https://use.typekit.net/umi0mbj.css">
     <link rel="stylesheet" href="css/styles.css">
-    <script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
-    <script type="text/javascript" src="js/easing.js"></script>
-    <script type="text/javascript" src="js/main.js"></script>
+    <link rel="stylesheet" href="css/mobile.css">
+
   </head>
   <body>
     <div id="header">
-      <div class="bkg"></div>
+      <div class="bkg-wrapper">
+        <div class="bkg"></div>
+      </div>
       <div id="centerpiece">
         <div id="title">
           <div class="title-inner">
@@ -25,19 +26,26 @@
             <div id="top-logo">
               SANKETH
             </div>
-            <div class="nav-inner">
+            <div class="nav-inner" id="menu-desktop">
               <div class="menu">
-                <div id="about-nav" class="menu-item">
+                <div id="about-nav" class="menu-item menu-item-desktop">
                   <a>ABOUT</a>
                 </div>
-                <div id="code-nav" class="menu-item">
+                <div id="code-nav" class="menu-item menu-item-desktop">
                   <a>CODE</a>
                 </div>
-                <div id="motion-nav" class="menu-item">
+                <div id="motion-nav" class="menu-item menu-item-desktop">
                   <a>MOTION</a>
                 </div>
-                <div id="contact-nav" class="menu-item">
+                <div id="contact-nav" class="menu-item menu-item-desktop">
                   <a>CONTACT</a>
+                </div>
+              </div>
+            </div>
+            <div id="menu-mobile">
+              <div class="menu">
+                <div id="hamburger-nav" class="menu-item">
+                  <a><img src="img/hamburger-menu-icon.svg" width="17px" /></a>
                 </div>
               </div>
             </div>
@@ -117,5 +125,9 @@
         </div>
       </div>
     </div>
+
+    <script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="js/easing.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
   </body>
 </html>

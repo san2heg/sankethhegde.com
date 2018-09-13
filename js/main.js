@@ -257,9 +257,55 @@ function setupScrollAnimation() {
 }
 
 function setupClicks() {
+  // Scroll to about
   $('.down-btn').on('click', function(e) {
     e.preventDefault();
     scrollTo('#about', $('#footer').hasClass('fixed') ? 0 : $('#footer').outerHeight(true));
+  });
+
+  // Mobile drop down menu
+  var mobileNavHeight = $('#mobile-nav').height();
+  $('#mobile-nav').css('margin-top', -1 * mobileNavHeight);
+  var open = false;
+  var scrollTop;
+  console.log('scrollTop = ' + scrollTop);
+
+  function toggleNav() {
+    if (open) {
+      closeMobileNav();
+    } else {
+      if (scrollTop >= $('#header').height() - $('#nav').height()) {
+        openMobileNav();
+      }
+    }
+  }
+
+  function openMobileNav() {
+    $('#mobile-nav-container').css('visibility', 'visible');
+    $('#mobile-nav').animate({
+      marginTop: '0',
+      opacity: 1
+    }, 300);
+    open = true;
+  }
+
+  function closeMobileNav() {
+    $('#mobile-nav').animate({
+      marginTop: -1 * mobileNavHeight + 'px',
+      opacity: 0
+    }, 300, function() {
+      $('#mobile-nav-container').css('visibility', 'hidden');
+    });
+    open = false;
+  }
+
+  $('#hamburger-nav').on('click', toggleNav);
+
+  $(window).on('scroll', function() {
+    scrollTop = $(this).scrollTop();
+    if (open) {
+      closeMobileNav();
+    }
   });
 }
 

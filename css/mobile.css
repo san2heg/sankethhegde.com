@@ -1,3 +1,5 @@
-@media only screen and (max-width: 535px) {
-
+@media only screen and (min-width: 535px) {
+  #mobile-nav-container {
+    visibility: hidden !important;
+  }
 }

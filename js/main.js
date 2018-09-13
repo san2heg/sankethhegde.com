@@ -77,62 +77,66 @@ function setupStickyScroll() {
   });
 }
 
-function createScrollSeg(params) {
+function createScrollFrame(params) {
+  if (params['elemActive'] == false) { return; }
+
+  if (params['verbose'] == true) {
+    console.log(params);
+  }
+
+  var startHeight = params['startHeight'],
+      endHeight = params['endHeight'],
+      property = params['property'],
+      transformProperty = params['transformProperty'],
+      startVal = params['startVal'],
+      endVal = params['endVal'],
+      elem = params['elem'],
+      diffVal = Math.abs(endVal - startVal),
+      easeMethod = params['easeMethod'] || EasingFunctions.linear,
+      multiplier = endVal - startVal >= 0 ? 1 : -1,
+      frameFunctions = params['frameFunctions'],
+      verbose = params['verbose'] == true
+
+  function logMsg(msg) {
+    console.log("[#" + elem.get(0).id + "] " + msg)
+  }
+
   SCROLL_FUNCS.push(function(y) {
-    var startHeight = params['startHeight'],
-        endHeight = params['endHeight'],
-        property = params['property'],
-        transformProperty = params['transformProperty'],
-        startVal = params['startVal'],
-        endVal = params['endVal'],
-        elem = params['elem'],
-        elemActive = params['elemActive'] != undefined ? params['elemActive'] : true,
-        diffVal = Math.abs(endVal - startVal),
-        easeMethod = params['easeMethod'] || EasingFunctions.linear,
-        multiplier = endVal - startVal >= 0 ? 1 : -1,
-        beforeFunc = params['beforeFunc'],
-        duringFunc = params['duringFunc'],
-        afterFunc = params['afterFunc']
-
-    if (!elemActive) { return; }
-
     var length = endHeight - startHeight;
+    var newVal;
     if (y >= startHeight && y <= endHeight) {
       // DURING
+      if (verbose) { logMsg("DURING: " + startHeight + " <= " + y + " <= " + endHeight) }
       var percentComplete = (y - startHeight) / length;
       var percentEase = easeMethod(percentComplete);
-      var currVal = startVal + (percentEase * diffVal) * multiplier;
-      if (transformProperty != undefined) {
-        elem.css('transform', property + '(' + currVal + transformProperty + ')');
-      } else {
-        elem.css(property, currVal);
-      }
-
-      if (duringFunc != undefined) { duringFunc() };
+      newVal = startVal + (percentEase * diffVal) * multiplier;
+      if (frameFunctions != undefined) { frameFunctions.during() };
     } else if (y < startHeight) {
       // BEFORE
-      if (transformProperty != undefined) {
-        elem.css('transform', property + '(' + startVal + transformProperty + ')');
-      } else {
-        elem.css(property, startVal);
-      }
-
-      if (beforeFunc != undefined) { beforeFunc() };
+      if (verbose) { logMsg("BEFORE: " + y + " < " + startHeight) }
+      newVal = startVal;
+      if (frameFunctions != undefined) { frameFunctions.before() };
     } else {
       // AFTER
-      if (transformProperty != undefined) {
-        elem.css('transform', property + '(' + endVal + transformProperty + ')');
-      } else {
-        elem.css(property, endVal);
-      }
+      if (verbose) { logMsg("AFTER: " + y + " > " + endHeight) }
+      newVal = endVal;
+      if (frameFunctions != undefined) { frameFunctions.after() };
+    }
 
-      if (afterFunc != undefined) { afterFunc() };
+    if (verbose) {
+      logMsg(property + ": " + newVal);
+    }
+
+    if (transformProperty != undefined) {
+      elem.css('transform', property + '(' + newVal + transformProperty + ')');
+    } else {
+      elem.css(property, newVal);
     }
   });
 }
 
 function setupScrollAnimation() {
-  createScrollSeg({
+  createScrollFrame({
     elem: $('#nav .nav-inner'),
     property: 'translateX',
     transformProperty: 'px',
@@ -141,20 +145,23 @@ function setupScrollAnimation() {
     startHeight: 0,
     endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
     easeMethod: EasingFunctions.easeInOutQuad,
-    beforeFunc: function() {
-      $('#nav').css('border-bottom', 'none');
-      $('#nav').css('background', 'none');
+    frameFunctions: {
+      before: function() {
+        $('#nav').css('border-bottom', 'none');
+        $('#nav').css('background', 'none');
+      },
+      during: function() {
+        $('#nav').css('border-bottom', 'none');
+        $('#nav').css('background', 'none');
+      },
+      after: function() {
+        $('#nav').css('border-bottom', '1px solid #d9d9d9');
+        $('#nav').css('background-color', 'white');
+      }
     },
-    duringFunc: function() {
-      $('#nav').css('border-bottom', 'none');
-      $('#nav').css('background', 'none');
-    },
-    afterFunc: function() {
-      $('#nav').css('border-bottom', '1px solid #d9d9d9');
-      $('#nav').css('background-color', 'white');
-    }
+    verbose: true
   });
-  createScrollSeg({
+  createScrollFrame({
     elem: $('#title .title-inner'),
     property: 'translateX',
     transformProperty: 'px',
@@ -164,7 +171,7 @@ function setupScrollAnimation() {
     endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
     easeMethod: EasingFunctions.easeInQuad
   });
-  createScrollSeg({
+  createScrollFrame({
     elem: $('#top-logo'),
     property: 'translateX',
     transformProperty: 'px',
@@ -174,7 +181,7 @@ function setupScrollAnimation() {
     endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
     easeMethod: EasingFunctions.easeOutQuad
   });
-  createScrollSeg({
+  createScrollFrame({
     elem: $('#top-logo'),
     property: 'opacity',
     startVal: 0,
@@ -182,7 +189,7 @@ function setupScrollAnimation() {
     startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
     endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
   });
-  createScrollSeg({
+  createScrollFrame({
     elem: $('.bkg-wrapper'),
     property: 'opacity',
     startVal: 1,
@@ -190,18 +197,17 @@ function setupScrollAnimation() {
     startHeight: 0,
     endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
   });
-  createScrollSeg({
+  createScrollFrame({
     elem: $('#menu-mobile'),
-    elemActive: isMobile(),
     property: 'translateX',
     transformProperty: 'px',
-    startVal: isMobile() ? -40 : -20,
+    startVal: isMobile() ? -20 : -40,
     endVal: 0,
     startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
     endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
     easeMethod: EasingFunctions.easeOutQuad
   });
-  createScrollSeg({
+  createScrollFrame({
     elem: $('#menu-mobile'),
     elemActive: isMobile(),
     property: 'opacity',
@@ -209,8 +215,19 @@ function setupScrollAnimation() {
     endVal: 1,
     startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
     endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    frameFunctions: {
+      before: function() {
+        $('#menu-mobile').css('display', 'none');
+      },
+      during: function() {
+        $('#menu-mobile').css('display', 'flex');
+      },
+      after: function() {
+        $('#menu-mobile').css('display', 'flex');
+      }
+    }
   });
-  createScrollSeg({
+  createScrollFrame({
     elem: $('#nav .nav-inner'),
     elemActive: isMobile(),
     property: 'opacity',
@@ -218,6 +235,24 @@ function setupScrollAnimation() {
     endVal: 0,
     startHeight: 0,
     endHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
+    frameFunctions: {
+      before: function() {
+        $('#nav .nav-inner').css('display', 'block');
+      },
+      during: function() {
+        $('#nav .nav-inner').css('display', 'block');
+      },
+      after: function() {
+        $('#nav .nav-inner').css('display', 'none');
+      }
+    }
+  });
+
+  RESETS.push(function() {
+    $('#nav .nav-inner').css('display', '');
+    $('#nav .nav-inner').css('opacity', '');
+    $('#menu-mobile').css('display', '');
+    $('#menu-mobile').css('opacity', '');
   });
 }
 

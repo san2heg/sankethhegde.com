@@ -1,9 +1,3 @@
 @media only screen and (max-width: 535px) {
-  #menu-mobile {
-    display: flex;
-  }
 
-  #menu-mobile .menu {
-    justify-content: flex-end;
-  }
 }

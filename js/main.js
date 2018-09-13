@@ -77,162 +77,147 @@ function setupStickyScroll() {
   });
 }
 
-function setupScrollAnimation() {
-  var elems = [
-    $('#nav .nav-inner'),
-    $('#title .title-inner'),
-    $('#top-logo'),
-    $('#top-logo'),
-    $('.bkg-wrapper'),
-    $('#menu-mobile'),
-    $('#menu-mobile'),
-    $('#nav .nav-inner')
-  ];
-  var elemsActive = [
-    true,
-    true,
-    true,
-    true,
-    true,
-    isMobile(),
-    isMobile(),
-    isMobile()
-  ];
-  var properties = [
-    'translateX',
-    'translateX',
-    'translateX',
-    'opacity',
-    'opacity',
-    'translateX',
-    'opacity',
-    'opacity'
-  ];
-  var transformProperties = [
-    'px',
-    'px',
-    'px',
-    false,
-    false,
-    'px',
-    false,
-    false
-  ];
-  var startVals = [
-    0,
-    0,
-    isMobile() ? 20 : 40,
-    0,
-    1,
-    isMobile() ? -40 : -20,
-    0,
-    1
-  ];
-  var endVals = [
-    parseFloat(elems[0].css('margin-right')),
-    -1 * parseFloat(elems[1].css('margin-left')),
-    -1 * parseFloat(elems[2].css('margin-left')),
-    1,
-    0,
-    0,
-    1,
-    0
-  ];
-  var startHeights = [
-    0,
-    0,
-    $('#title .title-inner').offset().top + $('#title .title-inner').height(),
-    $('#title .title-inner').offset().top + $('#title .title-inner').height(),
-    0,
-    $('#title .title-inner').offset().top + $('#title .title-inner').height(),
-    $('#title .title-inner').offset().top + $('#title .title-inner').height(),
-    0
-  ];
-  var endHeights = [
-    $('#centerpiece').outerHeight(true) - $('#nav').height(),
-    $('#centerpiece').outerHeight(true) - $('#nav').height(),
-    $('#centerpiece').outerHeight(true) - $('#nav').height(),
-    $('#centerpiece').outerHeight(true) - $('#nav').height(),
-    $('#centerpiece').outerHeight(true) - $('#nav').height(),
-    $('#centerpiece').outerHeight(true) - $('#nav').height(),
-    $('#centerpiece').outerHeight(true) - $('#nav').height(),
-    $('#title .title-inner').offset().top + $('#title .title-inner').height()
-  ];
-  var easeMethods = [
-    EasingFunctions.easeInOutQuad,
-    EasingFunctions.easeInQuad,
-    EasingFunctions.easeOutQuad,
-    EasingFunctions.linear,
-    EasingFunctions.linear,
-    EasingFunctions.easeOutQuad,
-    EasingFunctions.linear,
-    EasingFunctions.linear
-  ]
-
+function createScrollSeg(params) {
   SCROLL_FUNCS.push(function(y) {
-    var i;
-    for (i = 0; i < elems.length; i++) {
-      var startHeight = startHeights[i],
-          endHeight = endHeights[i],
-          property = properties[i],
-          transformProperty = transformProperties[i],
-          startVal = startVals[i],
-          diffVal = Math.abs(endVals[i] - startVals[i]),
-          elem = elems[i],
-          elemActive = elemsActive[i],
-          endVal = endVals[i],
-          easeMethod = easeMethods[i],
-          multiplier = endVals[i] - startVals[i] >= 0 ? 1 : -1;
+    var startHeight = params['startHeight'],
+        endHeight = params['endHeight'],
+        property = params['property'],
+        transformProperty = params['transformProperty'],
+        startVal = params['startVal'],
+        endVal = params['endVal'],
+        elem = params['elem'],
+        elemActive = params['elemActive'] != undefined ? params['elemActive'] : true,
+        diffVal = Math.abs(endVal - startVal),
+        easeMethod = params['easeMethod'] || EasingFunctions.linear,
+        multiplier = endVal - startVal >= 0 ? 1 : -1,
+        beforeFunc = params['beforeFunc'],
+        duringFunc = params['duringFunc'],
+        afterFunc = params['afterFunc']
 
-      if (!elemActive) { continue; }
+    if (!elemActive) { return; }
 
-      var length = endHeight - startHeight;
-      if (y >= startHeight && y <= endHeight) {
-        var percentComplete = (y - startHeight) / length;
-        var percentEase = easeMethod(percentComplete);
-        var currVal = startVal + (percentEase * diffVal) * multiplier;
-        if (transformProperty != false) {
-          elem.css('transform', property + '(' + currVal + transformProperty + ')');
-        } else {
-          elem.css(property, currVal);
-        }
-        if (i == 0) {
-          $('#nav').css('border-bottom', 'none');
-          $('#nav').css('background', 'none');
-        }
-      } else if (y < startHeight) {
-        if (transformProperty != false) {
-          elem.css('transform', property + '(' + startVal + transformProperty + ')');
-        } else {
-          elem.css(property, startVal);
-        }
-        if (i == 0) {
-          $('#nav').css('border-bottom', 'none');
-          $('#nav').css('background', 'none');
-        }
+    var length = endHeight - startHeight;
+    if (y >= startHeight && y <= endHeight) {
+      // DURING
+      var percentComplete = (y - startHeight) / length;
+      var percentEase = easeMethod(percentComplete);
+      var currVal = startVal + (percentEase * diffVal) * multiplier;
+      if (transformProperty != undefined) {
+        elem.css('transform', property + '(' + currVal + transformProperty + ')');
       } else {
-        if (transformProperty != false) {
-          elem.css('transform', property + '(' + endVal + transformProperty + ')');
-        } else {
-          elem.css(property, endVal);
-        }
-        if (i == 0) {
-          $('#nav').css('border-bottom', '1px solid #d9d9d9');
-          $('#nav').css('background-color', 'white');
-        }
+        elem.css(property, currVal);
       }
+
+      if (duringFunc != undefined) { duringFunc() };
+    } else if (y < startHeight) {
+      // BEFORE
+      if (transformProperty != undefined) {
+        elem.css('transform', property + '(' + startVal + transformProperty + ')');
+      } else {
+        elem.css(property, startVal);
+      }
+
+      if (beforeFunc != undefined) { beforeFunc() };
+    } else {
+      // AFTER
+      if (transformProperty != undefined) {
+        elem.css('transform', property + '(' + endVal + transformProperty + ')');
+      } else {
+        elem.css(property, endVal);
+      }
+
+      if (afterFunc != undefined) { afterFunc() };
     }
   });
+}
 
-  RESETS.push(function() {
-    var i;
-    for (i = 0; i < elems.length; i++) {
-      if (transformProperties[i] != false) {
-        elems[i].css('transform', '');
-        continue
-      }
-      elems[i].css(properties[i], '');
+function setupScrollAnimation() {
+  createScrollSeg({
+    elem: $('#nav .nav-inner'),
+    property: 'translateX',
+    transformProperty: 'px',
+    startVal: 0,
+    endVal: parseFloat($('#nav .nav-inner').css('margin-right')),
+    startHeight: 0,
+    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    easeMethod: EasingFunctions.easeInOutQuad,
+    beforeFunc: function() {
+      $('#nav').css('border-bottom', 'none');
+      $('#nav').css('background', 'none');
+    },
+    duringFunc: function() {
+      $('#nav').css('border-bottom', 'none');
+      $('#nav').css('background', 'none');
+    },
+    afterFunc: function() {
+      $('#nav').css('border-bottom', '1px solid #d9d9d9');
+      $('#nav').css('background-color', 'white');
     }
+  });
+  createScrollSeg({
+    elem: $('#title .title-inner'),
+    property: 'translateX',
+    transformProperty: 'px',
+    startVal: 0,
+    endVal: -1 * parseFloat($('#title .title-inner').css('margin-left')),
+    startHeight: 0,
+    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    easeMethod: EasingFunctions.easeInQuad
+  });
+  createScrollSeg({
+    elem: $('#top-logo'),
+    property: 'translateX',
+    transformProperty: 'px',
+    startVal: isMobile() ? 20 : 40,
+    endVal: -1 * parseFloat($('#top-logo').css('margin-left')),
+    startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
+    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    easeMethod: EasingFunctions.easeOutQuad
+  });
+  createScrollSeg({
+    elem: $('#top-logo'),
+    property: 'opacity',
+    startVal: 0,
+    endVal: 1,
+    startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
+    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+  });
+  createScrollSeg({
+    elem: $('.bkg-wrapper'),
+    property: 'opacity',
+    startVal: 1,
+    endVal: 0,
+    startHeight: 0,
+    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+  });
+  createScrollSeg({
+    elem: $('#menu-mobile'),
+    elemActive: isMobile(),
+    property: 'translateX',
+    transformProperty: 'px',
+    startVal: isMobile() ? -40 : -20,
+    endVal: 0,
+    startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
+    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    easeMethod: EasingFunctions.easeOutQuad
+  });
+  createScrollSeg({
+    elem: $('#menu-mobile'),
+    elemActive: isMobile(),
+    property: 'opacity',
+    startVal: 0,
+    endVal: 1,
+    startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
+    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+  });
+  createScrollSeg({
+    elem: $('#nav .nav-inner'),
+    elemActive: isMobile(),
+    property: 'opacity',
+    startVal: 1,
+    endVal: 0,
+    startHeight: 0,
+    endHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
   });
 }
 

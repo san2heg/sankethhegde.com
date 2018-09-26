@@ -13,11 +13,15 @@ body {
 
 /* HEADER */
 
+#title {
+  height: 43px;
+}
+
 #header {
   position: relative;
 }
 
-#header #title {
+#title {
   position: relative;
   font-weight: 400;
   font-size: 40px;

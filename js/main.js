@@ -309,8 +309,8 @@ function setupClicks() {
   });
 }
 
-function setup() {
-  reset()
+function setupScroll() {
+  reset();
   setupCenterpiece();
   setupStickyScroll();
   setupScrollAnimation();
@@ -345,20 +345,31 @@ function setupRAFScroll() {
   $(window).on('scroll', onScroll);
 }
 
-function centerpieceAnimate() {
+function centerpieceAnimate(animInstance) {
   $('#header .bkg').animate({
     opacity: 1
   }, 1000);
+
+  animInstance.play();
+}
+
+function setupLottie() {
+  return lottie.loadAnimation({
+    container: document.getElementById('centerpiece-inner'),
+    renderer: 'svg',
+    path: '../json/centerpiece.json'
+  });
 }
 
 $(document).ready(function() {
+  var cp = setupLottie();
   setupRAFScroll();
   setupAnchors();
   setupClicks();
-  setup();
-  centerpieceAnimate();
+  setupScroll();
+  centerpieceAnimate(cp);
 
   $(window).on('resize', function() {
-    setup();
+    setupScroll();
   });
 });

@@ -45,7 +45,8 @@ function setupStickyScroll() {
   var navTop = $nav.offset().top;
   var footerBottom = $footer.offset().top + $footer.height();
 
-  SCROLL_FUNCS.push(function(y) {
+  SCROLL_FUNCS.push(function() {
+    var y = $(window).scrollTop();
     var yBottom = y + $(window).height();
     var navIsFixed = $nav.hasClass('fixed');
     var footerIsFixed = $footer.hasClass('fixed');
@@ -101,7 +102,8 @@ function createScrollFrame(params) {
     console.log("[#" + elem.get(0).id + "] " + msg)
   }
 
-  SCROLL_FUNCS.push(function(y) {
+  SCROLL_FUNCS.push(function() {
+    var y = $(window).scrollTop();
     var length = endHeight - startHeight;
     var newVal;
     if (y >= startHeight && y <= endHeight) {
@@ -189,13 +191,21 @@ function setupScrollAnimation() {
     startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
     endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
   });
+  // createScrollFrame({
+  //   elem: $('.bkg-wrapper'),
+  //   property: 'opacity',
+  //   startVal: 1,
+  //   endVal: 0,
+  //   startHeight: 0,
+  //   endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+  // });
   createScrollFrame({
-    elem: $('.bkg-wrapper'),
+    elem: $('.down-btn'),
     property: 'opacity',
     startVal: 1,
     endVal: 0,
     startHeight: 0,
-    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height()
   });
   createScrollFrame({
     elem: $('#menu-mobile'),
@@ -268,7 +278,6 @@ function setupClicks() {
   $('#mobile-nav').css('margin-top', -1 * mobileNavHeight);
   var open = false;
   var scrollTop;
-  console.log('scrollTop = ' + scrollTop);
 
   function toggleNav() {
     if (open) {
@@ -318,47 +327,43 @@ function setupScroll() {
 }
 
 function setupRAFScroll() {
-  var lastScrollY = 0;
-  var ticking = false;
-  var k = 0, j = 0;
+  var timeout;
 
-  var update = function() {
-    var i;
-    for (i = 0; i < SCROLL_FUNCS.length; i++) {
-      SCROLL_FUNCS[i](lastScrollY);
+  window.addEventListener('scroll', function(event) {
+    if (timeout) {
+      window.cancelAnimationFrame(timeout);
     }
-    ticking = false;
-  };
 
-  var requestTick = function() {
-    if (!ticking) {
-      window.requestAnimationFrame(update);
-      ticking = true;
-    }
-  };
-
-  var onScroll = function() {
-    lastScrollY = window.scrollY;
-    requestTick();
-  };
-
-  $(window).on('scroll', onScroll);
+    timeout = window.requestAnimationFrame(function() {
+      var i;
+      for (i = 0; i < SCROLL_FUNCS.length; i++) {
+        SCROLL_FUNCS[i]();
+      }
+    })
+  });
 }
 
 function centerpieceAnimate(animInstance) {
-  $('#header .bkg').animate({
-    opacity: 1
-  }, 1000);
+  // $('#header .bkg').animate({
+  //   opacity: 1
+  // }, 1000);
 
   animInstance.play();
+  animInstance.addEventListener('complete', function(event) {
+    $('.down-btn img').animate({
+      opacity: 1
+    }, 600);
+  });
 }
 
 function setupLottie() {
-  return lottie.loadAnimation({
+  var anim = lottie.loadAnimation({
     container: document.getElementById('centerpiece-inner'),
     renderer: 'svg',
     path: '../json/centerpiece.json'
   });
+  anim.setSpeed(1.3);
+  return anim;
 }
 
 $(document).ready(function() {

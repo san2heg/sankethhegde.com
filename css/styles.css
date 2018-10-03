@@ -43,7 +43,7 @@ body {
   top: 0;
   left: 0;
   z-index: -1;
-  background-image: linear-gradient(to bottom, white, #d9d9d9);
+  /* background-image: linear-gradient(to bottom, white, #d9d9d9); */
 }
 
 #header .border {
@@ -53,12 +53,16 @@ body {
   border-bottom: 1px solid #d9d9d9;
 }
 
-#header .down-btn {
+.down-btn {
   position: absolute;
   bottom: 5px;
   width: 100%;
   text-align: center;
   animation: UpDown 1s ease infinite;
+}
+
+.down-btn img {
+  opacity: 0;
 }
 
 @keyframes UpDown {

@@ -1,5 +1,6 @@
 RESETS = [];
-SCROLL_FUNCS = [];
+REALTIME_SCROLL_FUNCS = []
+RAF_SCROLL_FUNCS = [];
 
 function reset() {
   var i;
@@ -8,15 +9,16 @@ function reset() {
   }
 
   RESETS = [];
-  SCROLL_FUNCS = [];
+  RAF_SCROLL_FUNCS = [];
+  REALTIME_SCROLL_FUNCS = [];
 }
 
 function isMobile() { return $(window).outerWidth() <= 535; }
 
-function scrollTo(selector, offset) {
+function scrollTo(selector, offset, time) {
   $('html, body').animate({
     scrollTop: $(selector).offset().top - offset
-  }, 2000, "swing");
+  }, time, "swing");
 }
 
 function setupCenterpiece() {
@@ -45,7 +47,7 @@ function setupStickyScroll() {
   var navTop = $nav.offset().top;
   var footerBottom = $footer.offset().top + $footer.height();
 
-  SCROLL_FUNCS.push(function() {
+  REALTIME_SCROLL_FUNCS.push(function() {
     var y = $(window).scrollTop();
     var yBottom = y + $(window).height();
     var navIsFixed = $nav.hasClass('fixed');
@@ -96,13 +98,14 @@ function createScrollFrame(params) {
       easeMethod = params['easeMethod'] || EasingFunctions.linear,
       multiplier = endVal - startVal >= 0 ? 1 : -1,
       frameFunctions = params['frameFunctions'],
-      verbose = params['verbose'] == true
+      verbose = params['verbose'] == true,
+      realtime = params['realtime'] == true
 
   function logMsg(msg) {
     console.log("[#" + elem.get(0).id + "] " + msg)
   }
 
-  SCROLL_FUNCS.push(function() {
+  var func = function() {
     var y = $(window).scrollTop();
     var length = endHeight - startHeight;
     var newVal;
@@ -134,10 +137,18 @@ function createScrollFrame(params) {
     } else {
       elem.css(property, newVal);
     }
-  });
+  }
+
+  if (realtime) {
+    REALTIME_SCROLL_FUNCS.push(func);
+  } else {
+    RAF_SCROLL_FUNCS.push(func);
+  }
 }
 
 function setupScrollAnimation() {
+  var contentStartHeight = $('#centerpiece').outerHeight(true) - $('#nav').height();
+
   createScrollFrame({
     elem: $('#nav .nav-inner'),
     property: 'translateX',
@@ -145,7 +156,7 @@ function setupScrollAnimation() {
     startVal: 0,
     endVal: parseFloat($('#nav .nav-inner').css('margin-right')),
     startHeight: 0,
-    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    endHeight: contentStartHeight,
     easeMethod: EasingFunctions.easeInOutQuad,
     frameFunctions: {
       before: function() {
@@ -170,7 +181,7 @@ function setupScrollAnimation() {
     startVal: 0,
     endVal: -1 * parseFloat($('#title .title-inner').css('margin-left')),
     startHeight: 0,
-    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    endHeight: contentStartHeight,
     easeMethod: EasingFunctions.easeInQuad
   });
   createScrollFrame({
@@ -180,7 +191,7 @@ function setupScrollAnimation() {
     startVal: isMobile() ? 20 : 40,
     endVal: -1 * parseFloat($('#top-logo').css('margin-left')),
     startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
-    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    endHeight: contentStartHeight,
     easeMethod: EasingFunctions.easeOutQuad
   });
   createScrollFrame({
@@ -189,7 +200,7 @@ function setupScrollAnimation() {
     startVal: 0,
     endVal: 1,
     startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
-    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    endHeight: contentStartHeight,
   });
   // createScrollFrame({
   //   elem: $('.bkg-wrapper'),
@@ -197,7 +208,7 @@ function setupScrollAnimation() {
   //   startVal: 1,
   //   endVal: 0,
   //   startHeight: 0,
-  //   endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+  //   endHeight: contentStartHeight,
   // });
   createScrollFrame({
     elem: $('.down-btn'),
@@ -205,7 +216,7 @@ function setupScrollAnimation() {
     startVal: 1,
     endVal: 0,
     startHeight: 0,
-    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height()
+    endHeight: contentStartHeight
   });
   createScrollFrame({
     elem: $('#menu-mobile'),
@@ -214,7 +225,7 @@ function setupScrollAnimation() {
     startVal: isMobile() ? -20 : -40,
     endVal: 0,
     startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
-    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    endHeight: contentStartHeight,
     easeMethod: EasingFunctions.easeOutQuad
   });
   createScrollFrame({
@@ -224,7 +235,7 @@ function setupScrollAnimation() {
     startVal: 0,
     endVal: 1,
     startHeight: $('#title .title-inner').offset().top + $('#title .title-inner').height(),
-    endHeight: $('#centerpiece').outerHeight(true) - $('#nav').height(),
+    endHeight: contentStartHeight,
     frameFunctions: {
       before: function() {
         $('#menu-mobile').css('display', 'none');
@@ -270,7 +281,14 @@ function setupClicks() {
   // Scroll to about
   $('.down-btn').on('click', function(e) {
     e.preventDefault();
-    scrollTo('#about', $('#footer').hasClass('fixed') ? 0 : $('#footer').outerHeight(true));
+    scrollTo('#about', $('#footer').hasClass('fixed') ? 0 : $('#footer').outerHeight(true), 2000);
+  });
+
+  // Nav anchor clicks
+  $('.menu-item-link').on('click', function(e) {
+    e.preventDefault();
+    var anchor = $(this).attr('href');
+    scrollTo(anchor, $('#footer').hasClass('fixed') ? 0 : $('#footer').outerHeight(true), 1000);
   });
 
   // Mobile drop down menu
@@ -323,23 +341,40 @@ function setupScroll() {
   setupCenterpiece();
   setupStickyScroll();
   setupScrollAnimation();
-  $(window).trigger('scroll');
+  $(window).trigger('reset');
 }
 
 function setupRAFScroll() {
   var timeout;
 
+  $(window).on('reset', function(e) {
+    var i;
+    for (i = 0; i < RAF_SCROLL_FUNCS.length; i++) {
+      RAF_SCROLL_FUNCS[i]();
+    }
+    for (i = 0; i < REALTIME_SCROLL_FUNCS.length; i++) {
+      REALTIME_SCROLL_FUNCS[i]();
+    }
+  });
+
   window.addEventListener('scroll', function(event) {
     if (timeout) {
       window.cancelAnimationFrame(timeout);
+      console.log('timeout');
     }
 
     timeout = window.requestAnimationFrame(function() {
       var i;
-      for (i = 0; i < SCROLL_FUNCS.length; i++) {
-        SCROLL_FUNCS[i]();
+      for (i = 0; i < RAF_SCROLL_FUNCS.length; i++) {
+        RAF_SCROLL_FUNCS[i]();
       }
     })
+  });
+
+  window.addEventListener('scroll', function(event) {
+    for (i = 0; i < REALTIME_SCROLL_FUNCS.length; i++) {
+      REALTIME_SCROLL_FUNCS[i]();
+    }
   });
 }
 
